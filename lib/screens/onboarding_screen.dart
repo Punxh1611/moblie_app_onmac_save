@@ -14,24 +14,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
 
   final List<OnboardingPage> _pages = [
-    final List<OnboardingPage> _pages = [
     OnboardingPage(
       title: 'Fresh Vegetables',
-      description: 'Get the freshest vegetables and fruits directly from local farms to your doorstep.',
-      backgroundColor: const Color(0xFFE8F5E9), // สีเขียวอ่อนแบบ Fresh
-      illustration: '🥦', // ผักบรอกโคลี
+      description: 'AGet the freshest vegetables and fruits directly from local farms to your doorstep.',
+      backgroundColor: Color(0xFFE8F5E9),
+      illustration: '🔍🥦',
     ),
     OnboardingPage(
       title: 'Best Offers & Sales',
       description: 'Enjoy up to 20% offer sale on your first purchase and seasonal discounts.',
-      backgroundColor: const Color(0xFFFFF3E0), // สีส้มอ่อนแบบ Flash Sale
-      illustration: '🍎', // แอปเปิ้ล
+      backgroundColor: Color(0xFFFFF3E0),
+      illustration: '🍎📉',
     ),
     OnboardingPage(
       title: 'Fast & Fresh Delivery',
       description: 'We ensure your groceries stay fresh during transit and arrive on time.',
-      backgroundColor: const Color(0xFFF1F8E9), // สีเขียวสว่าง
-      illustration: '🚚', // รถส่งของ
+      backgroundColor: Color(0xFFF1F8E9),
+      illustration: '🚚⏰',
     ),
   ];
 
