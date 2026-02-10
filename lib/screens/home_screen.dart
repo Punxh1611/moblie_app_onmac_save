@@ -364,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Up to 20% Offer sale',
                                 style: TextStyle(
                                   color: isDarkMode ? Colors.white : Colors.black87,
-                                  fontSize: 20,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -373,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Enjoy your shopping with\nour black friday offer',
                                 style: TextStyle(
                                   color: isDarkMode ? Colors.white70 : Colors.black54,
-                                  fontSize: 13,
+                                  fontSize: 8,
                                   height: 1.4,
                                 ),
                               ),
@@ -396,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: const Text(
                                   'Shop Now',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -404,17 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        Positioned(
-                          right: -5,
-                          top: 0,
-                          bottom: 0,
-                          child: Center(
-                            child: Text(
-                              '🧺',
-                              style: TextStyle(fontSize: 70),
-                            ),
-                          ),
-                        ),
+                        
                       ],
                     ),
                   ),

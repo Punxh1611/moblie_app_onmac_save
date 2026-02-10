@@ -13,9 +13,13 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   late bool _isLogin;
   final _formKey = GlobalKey<FormState>();
+  
+  // 1. เพิ่ม Controller สำหรับ Username
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool isDarkMode = false;
@@ -37,6 +41,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   void dispose() {
+    // 2. Dispose Username Controller
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -51,6 +57,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     });
     _animationController.reset();
     _animationController.forward();
+  }
+
+  void SignUP() {
+    // Implement sign-up logic here
   }
 
   @override
@@ -140,6 +150,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         ),
                       ),
                       const SizedBox(height: 30),
+
+                      if (!_isLogin) ...[
+                        _buildTextField(
+                          controller: _usernameController,
+                          hint: 'Username',
+                          icon: Icons.person_outline,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your username';
+                            }
+                            if (value.length < 3) {
+                              return 'Username must be at least 3 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                      ],
 
                       // Email Field
                       _buildTextField(
@@ -234,6 +262,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         child: ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
+                              // ตัวอย่างการใช้งานข้อมูล
+                              if (!_isLogin) {
+                                print('Username: ${_usernameController.text}');
+                              }
+                              
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(
                                   builder: (context) => const HomeScreen(),
