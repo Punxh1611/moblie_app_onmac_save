@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,8 +14,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   late bool _isLogin;
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
   
-  // 1. เพิ่ม Controller สำหรับ Username
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -23,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool isDarkMode = false;
+  bool _isLoading = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -41,7 +43,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   void dispose() {
-    // 2. Dispose Username Controller
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -59,8 +60,184 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     _animationController.forward();
   }
 
-  void SignUP() {
-    // Implement sign-up logic here
+  // ฟังก์ชันสำหรับ Login
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.signInWithEmailPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog(e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  // ฟังก์ชันสำหรับ Register
+  Future<void> _handleRegister() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.signUpWithEmailPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        username: _usernameController.text.trim(),
+      );
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog(e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  // ฟังก์ชันสำหรับรีเซ็ตรหัสผ่าน
+  Future<void> _handleForgotPassword() async {
+    final emailController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? const Color(0xFF16213e) : Colors.white,
+        title: Text(
+          'รีเซ็ตรหัสผ่าน',
+          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87),
+        ),
+        content: TextField(
+          controller: emailController,
+          decoration: InputDecoration(
+            hintText: 'กรอกอีเมลของคุณ',
+            hintStyle: TextStyle(
+              color: isDarkMode ? Colors.white38 : Colors.grey[400],
+            ),
+            filled: true,
+            fillColor: isDarkMode ? const Color(0xFF0f3460) : const Color(0xFFF0F4FF),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ยกเลิก'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (emailController.text.trim().isEmpty) {
+                _showErrorDialog('กรุณากรอกอีเมล');
+                return;
+              }
+
+              try {
+                await _authService.resetPassword(
+                  email: emailController.text.trim(),
+                );
+                
+                if (mounted) {
+                  Navigator.pop(context);
+                  _showSuccessDialog('ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว');
+                }
+              } catch (e) {
+                _showErrorDialog(e.toString());
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4A90E2),
+            ),
+            child: const Text('ส่ง'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // แสดง Error Dialog
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? const Color(0xFF16213e) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red),
+            const SizedBox(width: 10),
+            Text(
+              'เกิดข้อผิดพลาด',
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ตลกลง'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // แสดง Success Dialog
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? const Color(0xFF16213e) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.green),
+            const SizedBox(width: 10),
+            Text(
+              'สำเร็จ',
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87),
+            ),
+          ],
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ตกลง'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -241,7 +418,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
-                            onPressed: () {},
+                            onPressed: _handleForgotPassword,
                             child: Text(
                               'Forgot password?',
                               style: TextStyle(
@@ -260,20 +437,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              // ตัวอย่างการใช้งานข้อมูล
-                              if (!_isLogin) {
-                                print('Username: ${_usernameController.text}');
-                              }
-                              
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(),
-                                ),
-                              );
-                            }
-                          },
+                          onPressed: _isLoading ? null : (_isLogin ? _handleLogin : _handleRegister),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isDarkMode ? const Color(0xFF4A90E2) : const Color(0xFF4A90E2),
                             foregroundColor: Colors.white,
@@ -283,13 +447,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                             elevation: 3,
                           ),
-                          child: Text(
-                            _isLogin ? 'Login' : 'Sign Up',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  _isLogin ? 'Login' : 'Sign Up',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
 

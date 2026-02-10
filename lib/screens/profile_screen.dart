@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../constant/my_constant.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class ProfileHeaderClipper extends CustomClipper<Path> {
   @override
@@ -43,6 +44,96 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isDarkMode = false;
+  final AuthService _authService = AuthService();
+  
+  String username = "Loading...";
+  String email = "";
+  String profileImage = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // โหลดข้อมูล User จาก Firebase
+  Future<void> _loadUserData() async {
+    try {
+      final user = _authService.currentUser;
+      if (user != null) {
+        final userData = await _authService.getUserData(user.uid);
+        
+        setState(() {
+          username = userData?['username'] ?? user.displayName ?? "User";
+          email = user.email ?? "";
+          profileImage = userData?['profileImage'] ?? "";
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+      setState(() {
+        username = "User";
+      });
+    }
+  }
+
+  // ฟังก์ชัน Logout
+  Future<void> _handleLogout() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? const Color(0xFF16213e) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.logout, color: Colors.red),
+            const SizedBox(width: 10),
+            Text(
+              'Logout',
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87),
+            ),
+          ],
+        ),
+        content: Text(
+          'คุณต้องการออกจากระบบใช่หรือไม่?',
+          style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ยกเลิก'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await _authService.signOut();
+                if (mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                    (route) => false,
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('ไม่สามารถออกจากระบบได้: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('ออกจากระบบ'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,14 +190,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   bottom: 0,
                   child: Stack(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 50.0,
                         backgroundColor: Colors.white,
                         child: CircleAvatar(
                           radius: 47.0,
-                          backgroundImage: NetworkImage(
-                            'https://pbs.twimg.com/media/G-NAI3qaYAA2UEK?format=jpg&name=900x900',
-                          ),
+                          backgroundImage: profileImage.isNotEmpty
+                              ? NetworkImage(profileImage)
+                              : const NetworkImage(
+                                  'https://pbs.twimg.com/media/G-NAI3qaYAA2UEK?format=jpg&name=900x900',
+                                ),
                         ),
                       ),
                       Positioned(
@@ -141,12 +234,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 print("User Name clicked");
               },
               child: Text(
-                "User Name",
+                username,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: isDarkMode ? Colors.white : Colors.black87,
                 ),
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              email,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDarkMode ? Colors.white60 : Colors.grey[600],
               ),
             ),
             const SizedBox(height: 10),
@@ -214,9 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 30),
             Divider(color: isDarkMode ? Colors.grey[800] : Colors.grey[300]),
             InkWell(
-              onTap: () {
-                print("Log out clicked");
-              },
+              onTap: _handleLogout,
               child: ListTile(
                 leading: Container(
                   width: 40,

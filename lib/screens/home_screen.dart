@@ -209,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(width: 5),
             Text(
-              'New York, USA',
+              'Bangkok, THA',
               style: TextStyle(
                 color: isDarkMode ? Colors.white : Colors.black87,
                 fontSize: 16,
